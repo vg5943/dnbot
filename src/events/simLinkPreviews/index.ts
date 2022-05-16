@@ -21,7 +21,7 @@ export abstract class SimLinkPreview {
       /(http|https)?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=])*/gi;
 
     if (!message.content.match(urlExp)) {
-      console.log("Not url");
+      console.log("Not url, ", message.content.substring(0, 10));
       return;
     }
 
