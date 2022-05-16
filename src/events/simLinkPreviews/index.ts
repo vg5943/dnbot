@@ -17,6 +17,9 @@ interface ViewerDataFetch {
 export abstract class SimLinkPreview {
   @On("messageCreate")
   onMessage([message]: ArgsOf<"messageCreate">) {
+    // Don't reply to itself
+    if (message.author.bot) return;
+
     const urlExp =
       /(http|https)?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=])*/gi;
 
@@ -49,9 +52,7 @@ export abstract class SimLinkPreview {
         const data = JSON.parse(jsonData.data) as SimResult;
 
         // console.log(!message.author.bot);
-        if (!message.author.bot) {
-          await message.suppressEmbeds(true);
-        }
+        message.suppressEmbeds(true);
 
         const embedMsg = await PreviewSimAsMsg(data, path, match[0]);
         const channel = client.channels.cache.get(message.channelId) as TextChannel;
