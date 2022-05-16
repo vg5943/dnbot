@@ -20,13 +20,14 @@ export abstract class SimLinkPreview {
     const urlExp =
       /(http|https)?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=])*/gi;
 
-    if (!message.content.match(urlExp)) {
+    const match = message.content.match(urlExp);
+    if (!match) {
       console.log("Not url, ", message.content.substring(0, 10));
       return;
     }
 
     // console.log(message.content);
-    const path = new URL(message.content).pathname.split("/", 4)[3];
+    const path = new URL(match[0]).pathname.split("/", 4)[3];
     if (!path) {
       console.log("No path provided");
       return;
@@ -52,7 +53,7 @@ export abstract class SimLinkPreview {
           await message.suppressEmbeds(true);
         }
 
-        const embedMsg = await PreviewSimAsMsg(data, path, message.content);
+        const embedMsg = await PreviewSimAsMsg(data, path, match[0]);
         const channel = client.channels.cache.get(message.channelId) as TextChannel;
         if (channel) {
           const ok = await channel.send({ embeds: [embedMsg] });
