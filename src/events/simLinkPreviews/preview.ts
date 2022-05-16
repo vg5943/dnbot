@@ -60,6 +60,8 @@ const getTeamThumbnail = (chars: string[]) => {
       fn = fn.concat(c);
     });
     fn += ".webp";
+    // console.log(fn);
+
     // const imgUrl = cloudinary.url(`aggr/${fn}`);
     const imgUrl = await cloudinary.search.expression(`public_id=aggr/${fn}`).max_results(1).execute();
 
@@ -73,7 +75,7 @@ const getTeamThumbnail = (chars: string[]) => {
 
           let imgs: Buffer[] = [];
           chars.forEach((c) => {
-            const image = p.join(p.resolve(), `./public/images/avatar/trimmed/${c}_trimmed.png`);
+            const image = p.join(p.resolve(), `./public/images/avatar/${c}.png`);
             // console.log(image);
             try {
               const file: Buffer = fs.readFileSync(image);
