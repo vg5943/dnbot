@@ -65,45 +65,46 @@ const getTeamThumbnail = (chars: string[]) => {
     // const imgUrl = cloudinary.url(`aggr/${fn}`);
     const imgUrl = await cloudinary.search.expression(`public_id=aggr/${fn}`).max_results(1).execute();
 
+    let isResolved = false;
     if (imgUrl) {
       fetch(imgUrl.resources[0]?.url)
         .then((data) => {
-          resolve(data.url);
+          if (!isResolved) resolve(data.url);
         })
         .catch((err) => {
-          console.log("Not found image. Creating new one ", err);
-
-          let imgs: Buffer[] = [];
-          chars.forEach((c) => {
-            const image = p.join(p.resolve(), `./public/images/avatar/${c}.png`);
-            // console.log(image);
-            try {
-              const file: Buffer = fs.readFileSync(image);
-              imgs.push(file);
-              // console.log(file.length);
-            } catch (error) {
-              reject("unexpected file name");
-            }
-          });
-
-          joinImages(imgs, { direction: "horizontal" })
-            .then((img) => {
-              img
-                .webp({ alphaQuality: 0 })
-                .toBuffer()
-                .then((buf) => {
-                  // console.log(fn);
-                  uploadFromBuffer(buf, fn)
-                    .then((r) => {
-                      // console.log(r.url);
-                      resolve(r.url);
-                    })
-                    .catch((err) => reject(err));
-                });
-            })
-            .catch((err) => reject(err));
+          console.log("Not found image ", err);
         });
     }
+
+    let imgs: Buffer[] = [];
+    chars.forEach((c) => {
+      const image = p.join(p.resolve(), `./public/images/avatar/${c}.png`);
+      // console.log(image);
+      try {
+        const file: Buffer = fs.readFileSync(image);
+        imgs.push(file);
+        // console.log(file.length);
+      } catch (err) {
+        console.log("unexpected file ", err);
+      }
+    });
+
+    joinImages(imgs, { direction: "horizontal" })
+      .then((img) => {
+        img
+          .webp({ alphaQuality: 0 })
+          .toBuffer()
+          .then((buf) => {
+            // console.log(fn);
+            uploadFromBuffer(buf, fn)
+              .then((r) => {
+                // console.log(r.url);
+                if (!isResolved) resolve(r.url);
+              })
+              .catch((err) => reject(err));
+          });
+      })
+      .catch((err) => reject(err));
   });
 };
 
