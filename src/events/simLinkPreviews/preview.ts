@@ -68,8 +68,9 @@ const getTeamThumbnail = (chars: string[]) => {
     let isResolved = false;
     if (imgUrl) {
       fetch(imgUrl.resources[0]?.url)
-        .then((data) => {
-          if (!isResolved) resolve(data.url);
+        .then((r) => {
+          if (!isResolved) resolve(r.url);
+          isResolved = true;
         })
         .catch((err) => {
           console.log("Not found image ", err);
@@ -100,6 +101,7 @@ const getTeamThumbnail = (chars: string[]) => {
               .then((r) => {
                 // console.log(r.url);
                 if (!isResolved) resolve(r.url);
+                isResolved = true;
               })
               .catch((err) => reject(err));
           });
