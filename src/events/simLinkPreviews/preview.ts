@@ -67,11 +67,11 @@ const getTeamThumbnail = (chars: string[]) => {
 
     if (imgUrl) {
       fetch(imgUrl.resources[0]?.url)
-        .then(() => {
-          resolve(imgUrl.resources[0]?.url);
+        .then((data) => {
+          resolve(data.url);
         })
-        .catch(() => {
-          console.log("Not found image. Creating new one");
+        .catch((err) => {
+          console.log("Not found image. Creating new one ", err);
 
           let imgs: Buffer[] = [];
           chars.forEach((c) => {
