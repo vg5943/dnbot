@@ -59,15 +59,14 @@ const getTeamThumbnail = (chars: string[]) => {
     chars.forEach((c) => {
       fn = fn.concat(c);
     });
-    fn += ".webp";
     // console.log(fn);
 
     // const imgUrl = cloudinary.url(`aggr/${fn}`);
-    const imgUrl = await cloudinary.search.expression(`public_id=aggr/${fn}`).max_results(1).execute();
+    const imgUrl = await cloudinary.search.expression(`public_id=aggr/${fn}*`).max_results(1).execute();
 
     let isResolved = false;
-    if (imgUrl) {
-      fetch(imgUrl.resources[0]?.url)
+    if (imgUrl && imgUrl.resources[0]?.url) {
+      fetch(imgUrl.resources[0].url)
         .then((r) => {
           if (!isResolved) resolve(r.url);
           isResolved = true;
@@ -77,36 +76,56 @@ const getTeamThumbnail = (chars: string[]) => {
         });
     }
 
-    let imgs: Buffer[] = [];
-    chars.forEach((c) => {
-      const image = p.join(p.resolve(), `./public/images/avatar/${c}.png`);
-      // console.log(image);
-      try {
-        const file: Buffer = fs.readFileSync(image);
-        imgs.push(file);
-        // console.log(file.length);
-      } catch (err) {
-        console.log("unexpected file ", err);
-      }
-    });
+    // const imgs: Buffer[] = [];
+    // chars.forEach((c) => {
+    //   const image = p.join(p.resolve(), `./public/images/avatar/${c}.png`);
+    //   // console.log(image);
+    //   try {
+    //     const file: Buffer = fs.readFileSync(image);
+    //     imgs.push(file);
+    //     // console.log(file.length);
+    //   } catch (err) {
+    //     console.log("unexpected file ", err);
+    //   }
+    // });
 
-    joinImages(imgs, { direction: "horizontal" })
-      .then((img) => {
-        img
-          .webp({ alphaQuality: 0 })
-          .toBuffer()
-          .then((buf) => {
-            // console.log(fn);
-            uploadFromBuffer(buf, fn)
-              .then((r) => {
-                // console.log(r.url);
-                if (!isResolved) resolve(r.url);
-                isResolved = true;
-              })
-              .catch((err) => reject(err));
-          });
-      })
-      .catch((err) => reject(err));
+    const promises: Promise<Buffer[]> = chars.reduce<Promise<Buffer[]>>(async (p, c) => {
+      try {
+        const avt_url: any = await cloudinary.search.expression(`public_id=avatars/${c}*`).max_results(1).execute();
+        // console.log(avt_url.resources[0].url);
+
+        const res = await fetch(avt_url.resources[0].url);
+        const arrBuf = await res.arrayBuffer();
+        const buf = Buffer.from(arrBuf);
+
+        return [...(await p), buf];
+      } catch (e) {
+        console.log(e);
+        return p;
+      }
+    }, Promise.resolve([]));
+
+    const imgs: Buffer[] = await promises;
+
+    if (!isResolved)
+      joinImages(imgs, { direction: "horizontal" })
+        .then((img) => {
+          img
+            .png()
+            .toBuffer()
+            .then((buf) => {
+              // console.log(fn);
+              if (!isResolved)
+                uploadFromBuffer(buf, fn)
+                  .then((r) => {
+                    // console.log(r.url);
+                    resolve(r.url);
+                    isResolved = true;
+                  })
+                  .catch((err) => reject(err));
+            });
+        })
+        .catch((err) => reject(err));
   });
 };
 
@@ -118,7 +137,7 @@ const uploadFromBuffer = (b: Buffer, fn: string) => {
         resource_type: "raw",
         public_id: fn,
         overwrite: true,
-        filename_override: fn,
+        filename_override: `${fn}.png`,
         use_filename: true,
         unique_filename: false,
       },

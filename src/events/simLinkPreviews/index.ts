@@ -52,7 +52,7 @@ export abstract class SimLinkPreview {
         const data = JSON.parse(jsonData.data) as SimResult;
 
         // console.log(!message.author.bot);
-        message.suppressEmbeds(true);
+        // message.suppressEmbeds(true);
 
         const embedMsg = await PreviewSimAsMsg(data, path, match[0]);
         const channel = client.channels.cache.get(message.channelId) as TextChannel;

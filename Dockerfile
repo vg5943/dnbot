@@ -8,15 +8,15 @@ WORKDIR /tmp/app
 COPY package.json .
 
 # Install dependencies
-RUN npm install
+RUN yarn install
 
 # Move source files
 COPY src ./src
 COPY tsconfig.json .
-COPY public ./public
+# COPY public ./public
 
 # Build project
-RUN npm run build
+RUN yarn build
 
 ## producation runner
 FROM node:lts-alpine as prod-runner
@@ -27,11 +27,10 @@ WORKDIR /app
 # Copy package.json from build-runner
 COPY --from=build-runner /tmp/app/package.json /app/package.json
 
-# 
-COPY --from=build-runner /tmp/app/public /app/public
+# COPY --from=build-runner /tmp/app/public /app/public
 
 # Install dependencies
-RUN npm install --only=production
+RUN yarn install --only=production
 
 # Move build files
 COPY --from=build-runner /tmp/app/build /app/build

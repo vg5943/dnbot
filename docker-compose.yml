@@ -1,7 +1,16 @@
-version: "3"
+version: "3.8"
 services:
-  app:
+  dnbot:
+    image: dnbot
+    container_name: dnbot
     build: .
     command: node build/main.js
     environment:
-      - BOT_TOKEN=${BOT_TOKEN}
+      BOT_TOKEN: ${BOT_TOKEN}
+      API_KEY: ${API_KEY}
+      API_SECRET: ${API_SECRET}
+      CLOUD_NAME: ${CLOUD_NAME}
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
